@@ -1,0 +1,18 @@
+﻿
+@{
+    ViewBag.Title = "Планировщик заданий";
+ 
+}
+
+@(Html.Kendo().TabStrip()
+
+                        .Name("settingsTabStrip")
+                        .TabPosition(TabStripTabPosition.Top)
+                        .Items(items =>
+                        {
+                            items.Add().Text("Задания").Selected(true).LoadContentFrom("Tasks", "TaskService");
+                            items.Add().Text("Журнал").LoadContentFrom("Log", "LogSettings");
+                        })
+)
+
+

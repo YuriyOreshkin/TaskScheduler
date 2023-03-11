@@ -1,0 +1,41 @@
+﻿@model TaskScheduler.UI.Web.Models.TaskViewModel
+
+
+@(Html.Kendo().TabStrip()
+
+                                                            .Name("EditTaskTabStrip")
+                                                            .TabPosition(TabStripTabPosition.Left)
+                                                            .Items(items =>
+                                                            {
+                                                                items.Add().Text("Основное").Selected(true).Content(@<text>
+                                                                   
+                                                                        <div class="k-form-field">
+                                                                            <label class="k-label k-form-label" for="name">Наименование:</label>
+                                                                            <div class="k-form-field-wrap">
+                                                                                @Html.Kendo().TextBoxFor(m => m.name).HtmlAttributes(new { style = "width:100%;" })
+
+                                                                            </div>
+
+                                                                        </div>
+                                                                        <div class="k-form-field">
+                                                                            <label class="k-label k-form-label" for="job">Команда:</label>
+                                                                            <div class="k-form-field-wrap">
+                                                                                @Html.TextBoxFor(m => m.job, new { @class = "k-textbox", type = "url", style = "width:100%;" })
+                                                                            </div>
+                                                                        </div>
+                                                                    
+                                                                </text> );
+                                                                items.Add().Text("Триггер").Content(@<text> @Html.Partial("~/Views/Shared/EditorTemplates/Scheduler.cshtml", Model) </text>);
+
+                                                            })
+                                                                    )
+
+                                                                    <style>
+                                                                        .k-form-field {
+                                                                            margin-bottom: 20px;
+                                                                        }
+
+                                                                        .k-edit-form-container {
+                                                                            width: 100%;
+                                                                        }
+                                                                    </style>

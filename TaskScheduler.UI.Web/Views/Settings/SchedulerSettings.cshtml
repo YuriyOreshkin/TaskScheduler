@@ -1,0 +1,21 @@
+﻿@model TaskScheduler.UI.Web.Models.TaskViewModel
+
+<div style="height:86vh;margin-left: 25%; width:50%;">
+    <fieldset class="k-form-fieldset">
+        <legend class="k-form-legend">Настройки задания "@Model.name"</legend>
+        <div class="k-form-field">
+            <label class="k-label k-form-label" for="isStarted">Расписание:</label>
+            <span style="margin-left:20px;">
+                @if (Model.isStarted)
+                {
+                    <span title='Работает' class='k-icon k-i-video-external' style='font-size:18px; color: #52c664'></span>
+                }
+                else
+                {
+                    <span title='Остановлена' class='k-icon k-i-stop' style='font-size:18px;  color:#f45835;'></span>
+                }
+            </span>
+        </div>
+        @Html.Partial("~/Views/Shared/EditorTemplates/Scheduler.cshtml", Model)
+     </fieldset>
+</div>

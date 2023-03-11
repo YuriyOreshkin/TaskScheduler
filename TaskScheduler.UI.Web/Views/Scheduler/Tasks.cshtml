@@ -1,0 +1,214 @@
+﻿@model bool
+<script>
+    //Show Errors
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "<strong>Ошибки:</strong>";
+            message += "<ul>"
+            $.each(e.errors, function (key, value) {
+
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += "<li>" + this + " <br></li>";
+                    });
+                }
+            });
+            message += "</ul>"
+            showError(message);
+            this.cancelChanges();
+        }
+    }
+
+   
+
+    //Валидация данных
+    (function ($, kendo) {
+        $.extend(true, kendo.ui.validator, {
+            rules: { //StartAt<= EndAt Time
+                timeendvalidation: function (input) {
+                    if (input.is("[name='endingdailyat']") && input.val() != "") {
+                        input.attr("data-timeendvalidation-msg", "Время начала работы должно быть меньше окончания!");
+                        var timeend = $("#endingdailyat").data("kendoTimePicker").value(); 
+                        var timestart = $("#startingdailyat").data("kendoTimePicker").value();
+                        timestart = new Date(timestart);
+                        timeend = new Date(timeend);
+
+                        return timeend >= timestart;
+                    }
+
+                    return true;
+                }
+            }
+
+        });
+    })(jQuery, kendo);
+
+    function TaskCommand(e,url)
+    {
+        e.preventDefault();
+        var grid = $("#tasksGridView").data('kendoGrid');
+        var dataItem = grid.dataItem($(e.target).closest("tr"));
+
+        $.ajax({
+            type: "POST",
+            url: url,
+            datatype: 'json',
+            data: JSON.parse(JSON.stringify(dataItem)),
+                success: function (data) {
+
+                    if (data.result) {
+                        var isStarted = data.result.isStarted;
+                        var nextfiretime = data.result.nextfiretime;
+                        dataItem.set("isStarted", isStarted);
+                        dataItem.set("nextfiretime", nextfiretime);
+                        grid.dataSource.pushUpdate(dataItem);
+                        showSuccess(data.message);
+                        
+                    }
+                    else {
+
+                        showError(data.message);
+
+                    }
+                },
+                error: function (xhr, ajaxOptions, thrownError) {
+
+                    showError(thrownError + "-" + xhr.status);
+                }
+            });
+
+    }
+
+
+    function formatDate(date)
+    {
+        if (date) {
+            return kendo.toString(date, "dd.MM.yyyy HH:mm:ss");
+        }
+
+        return "";
+    }
+
+
+    $(document).on("click", ".task-action-start-stop", function (e) {
+
+         TaskCommand(e, "@Url.Action("StartStopTask", "TaskService")");
+
+    });
+
+    $(document).on("click", ".task-action-run", function (e) {
+         TaskCommand(e, "@Url.Action("RunTask", "TaskWork")");
+
+    });
+
+
+    
+
+    function StartStopScheduler(e)
+    {
+        
+        var grid = $("#tasksGridView").data('kendoGrid');
+        var isStarted = !e.checked;
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("StartStopScheduler", "TaskService")",
+            datatype: 'json',
+            data: { isStarted: isStarted },
+            success: function (data) {
+
+                if (data.result) {
+                   
+                    grid.dataSource.read();
+                    showSuccess(data.message);
+
+                }
+                else {
+
+                    showError(data.message);
+
+                }
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+
+                showError(thrownError + "-" + xhr.status);
+            }
+        });
+
+    }
+
+</script>
+<div style="height:86vh;">
+    @(Html.Kendo().Grid<TaskScheduler.UI.Web.Models.TaskViewModel>()
+                                                        .Name("tasksGridView")
+                                                        .HtmlAttributes(new { @class = "data-view", style = "height:100%;" })
+                                                        .ToolBar(toolbar =>
+                                                        {
+
+                                                            toolbar.Template(@<text>
+                                                                @item.CreateButton()
+                                                                <div style="float:right;margin-right:10px;"> 
+                                                                    <label class="k-label k-form-label">Сервис:</label>
+                                                                    <span>
+                                                                        @Html.Kendo().SwitchFor(m=>m).Name("schedulerSwitch").Messages(mes => mes.Checked(" Выключить").Unchecked("Включить")).Width(105).Events(ev => ev.Change("StartStopScheduler"))
+                                                                    </span>
+                                                                </div>
+                                                            </text>);
+
+                                                        })
+                                                                .Columns(columns =>
+                                                                {
+                                                                    columns.Bound(p => p.name);
+                                                                    columns.Bound(p => p.nextfiretime).ClientTemplate("#= formatDate(nextfiretime)#").Width(200).Filterable(false);
+                                                                    columns.Bound(p => p.isStarted).Width(120).ClientTemplate("<div style='text-align: center;vertical-align: middle;'> #if(isStarted) {# <span title='Работает' class='k-icon k-i-video-external' style='font-size:18px; color: \\#52c664'></span> # }else{# <span title='Остановлена' class='k-icon k-i-stop' style='font-size:18px;  color:\\#f45835;'></span> #} # </div>");
+                                                                    columns.Bound(p => p.isStarted).ClientTemplate("#if(isStarted) {#" +
+                                                                        Html.Kendo().Button().Name("StopTask_#=id#").Content("<span class='k-icon k-i-stop k-icon-14'></span>Остановить").HtmlAttributes(new { @class = "k-button task-action-start-stop task-command" }).ToClientTemplate() +
+                                                                        "#} else { #" +
+                                                                          Html.Kendo().Button().Name("StartTask_#=id#").Content("<span class='k-icon k-i-video-external k-icon-16'></span>Запустить").HtmlAttributes(new { @class = "k-button task-action-start-stop task-command" }).ToClientTemplate() +
+                                                                        "#}#"+
+                                                                        Html.Kendo().Button().Name("RunTask_#=id#").Content("<span class='k-icon k-i-play k-icon-14'></span>Выполнить").HtmlAttributes(new { @class = "k-button task-action-run task-command" }).ToClientTemplate()
+                                                                        ).Filterable(false).Title(" ").Width(300);
+                                                                    columns.Command(commands =>
+                                                                    {
+                                                                        commands.Edit();
+                                                                        commands.Destroy();
+                                                                    }).Width(300);
+
+                                                                })
+                                                        .Editable(edit => edit.Mode(GridEditMode.PopUp).TemplateName("TaskScheduler").Window(wnd => wnd.Width(600)))
+                                                        .Sortable()
+                                                        .Scrollable()
+                                                        .Resizable(r => r.Columns(true))
+                                                        .Filterable()
+                                                        .DataSource(dataSource => dataSource
+                                                                        .Ajax()
+                                                                        .Model(model =>
+                                                                        {
+                                                                            model.Id(p => p.id);
+                                                                            model.Field(p => p.isStarted).DefaultValue(false);
+
+                                                                        })
+                                                                        .Create(update => update.Action("CreateForGrid", "TaskDirectory"))
+                                                                        .Update(update => update.Action("UpdateForGrid", "TaskDirectory"))
+                                                                        .Destroy(update => update.Action("DestroyForGrid", "TaskDirectory"))
+                                                                        .Read(read => read.Action("ReadGridView", "TaskDirectory"))
+                                                                        .Events(events => events.Error("error_handler"))
+
+                                                        )
+
+    )
+</div>
+    <style>
+        #tasksGridView .k-icon-14 {
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        #tasksGridView .k-icon-16 {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+        #tasksGridView .task-command {
+            width: 120px;
+        }
+    </style>

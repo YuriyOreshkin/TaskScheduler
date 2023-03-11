@@ -1,0 +1,43 @@
+﻿@model TaskScheduler.UI.Web.Models.TaskViewModel
+
+
+
+<div class="k-form-field">
+    <label class="k-label k-form-label" for="ondaysoftheweek">Дни недели:</label>
+    <div class="k-form-field-wrap">
+        @Html.Kendo().MultiSelectFor(m => m.ondaysoftheweek).DataValueField("Value").DataTextField("Text").BindTo(new SelectListItem[]
+                     {
+                       new SelectListItem() { Text="Понедельник" , Value="1" },
+                       new SelectListItem() { Text="Вторник" , Value="2" },
+                       new SelectListItem() { Text="Среда" , Value="3" },
+                       new SelectListItem() { Text="Четверг" , Value="4" },
+                       new SelectListItem() { Text="Пятница‎" , Value="5" },
+                       new SelectListItem() { Text="Суббота‎" , Value="6" },
+                       new SelectListItem() { Text="Воскресенье" , Value="7" }
+
+                     }).ValuePrimitive(true).HtmlAttributes(new { style = "width:100%;" })
+    </div>
+</div>
+<div class="k-form-field" style="width:49%; float:left;">
+    <label class="k-label k-form-label" for="startingdailyat">Ежедневно начинать с:</label>
+    <div class="k-form-field-wrap">
+        @Html.Kendo().TimePickerFor(m => m.startingdailyat).Interval(15).HtmlAttributes(new { style = "width:100%;" })
+
+    </div>
+    <span class="k-invalid-msg" data-for="startingdailyat"></span>
+</div>
+<div class="k-form-field" style="width:49%; float:right;">
+    <label class="k-label k-form-label" for="endingdailyat">Ежедневно заканчивать в:</label>
+    <div class="k-form-field-wrap">
+        @Html.Kendo().TimePickerFor(m => m.endingdailyat).Interval(15).HtmlAttributes(new { style = "width:100%;" })
+    </div>
+    <span class="k-invalid-msg" data-for="endingdailyat"></span>
+</div>
+<div class="k-form-field">
+    <label class="k-label k-form-label" for="intervalinminutes">Интервал в минутах:</label>
+    <div class="k-form-field-wrap">
+        @Html.Kendo().IntegerTextBoxFor(m => m.intervalinminutes).Min(1).HtmlAttributes(new { style = "width:100%;" })
+    </div>
+    <span class="k-invalid-msg" data-for="intervalinminutes"></span>
+</div>
+
